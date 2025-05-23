@@ -1,0 +1,26 @@
+import yfinance as yf
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.metrics import mean_squared_error
+from sklearn.preprocessing import MinMaxScaler
+import pandas as pd
+
+# Load data
+data = yf.download('AAPL', start='2015-01-01', end='2024-12-31')
+data['Close'] = MinMaxScaler().fit_transform(data[['Close']])
+
+# Create features
+data['Prev_Close'] = data['Close'].shift(1)
+data.dropna(inplace=True)
+
+X = data[['Prev_Close']]
+y = data['Close']
+
+# Train/Test Split
+from sklearn.model_selection import train_test_split
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, shuffle=False)
+
+model = RandomForestRegressor()
+model.fit(X_train, y_train)
+y_pred = model.predict(X_test)
+
+print("RMSE:", mean_squared_error(y_test, y_pred, squared=False))
